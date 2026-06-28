@@ -1,0 +1,51 @@
+# =============================================================================
+# Hero Robot Localization — Real Robot Parameters
+# =============================================================================
+# This file is loaded by bringup_robot.launch.py for real-robot deployment.
+# Each parameter is documented with its role and recommended value range.
+# =============================================================================
+
+# --- Target coordinates (enemy BASE in map frame, meters) ---
+# These are field-specific and must be measured/calibrated per competition.
+# The defaults below are from the RM2026 red-side field.
+target_computer:
+  ros__parameters:
+    target_x: 23.125       # enemy base X in map frame
+    target_y: 1.510        # enemy base Y in map frame
+    target_z: 0.84         # enemy base Z in map frame (height of target center)
+    map_frame: "map"
+    muzzle_frame: "muzzle"
+    publish_rate: 20.0     # Hz — output rate to control group
+
+# --- LoamAdapter: Point-LIO → standard TF/Odometry ---
+# Converts Point-LIO output (camera_init frame) to standard odom→base_footprint TF.
+loam_adapter:
+  ros__parameters:
+    odom_topic: "aft_mapped_to_init"    # Point-LIO published odometry
+    pcd_topic: "cloud_registered"       # Point-LIO published point cloud
+    odom_frame: "odom"
+    base_frame: "base_footprint"
+    lidar_frame: "front_mid360"         # LiDAR link name in URDF
+
+# --- Relocalization: GICP scan-to-map registration ---
+# Matches live LiDAR scans against prior PCD map, publishes map→odom TF.
+# Requires a prior map at the path specified by prior_pcd_file.
+relocalization:
+  ros__parameters:
+    # Path to prior point cloud map (absolute or relative to share/)
+    prior_pcd_file: ""                  # FILL IN: e.g. /path/to/Hero.pcd
+
+    # GICP parameters
+    num_threads: 4                      # OpenMP threads for GICP
+    num_neighbors: 20                   # nearest neighbors for covariance estimation
+    global_leaf_size: 0.12              # m — voxel downsample for global map
+    registered_leaf_size: 0.12          # m — voxel downsample for live scan
+    max_dist_sq: 36.0                   # m² — max squared correspondence distance
+
+    # Frame IDs
+    map_frame: "map"
+    odom_frame: "odom"
+
+    # Topic and initial pose seed
+    input_scan_topic: "registered_scan" # from loam_adapter (odom frame)
+    init_pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # [x,y,z,roll,pitch,yaw] seed

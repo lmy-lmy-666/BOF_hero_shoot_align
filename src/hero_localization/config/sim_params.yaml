@@ -1,0 +1,42 @@
+# =============================================================================
+# Hero Robot Localization — Simulation Parameters
+# =============================================================================
+# This file is loaded by bringup_sim.launch.py for Gazebo simulation.
+# It OVERRIDES the robot defaults where the simulation model differs
+# from the real robot (e.g. URDF dimensions, coordinate conventions).
+# =============================================================================
+
+# --- Target coordinates (same as real, but verify per simulation world) ---
+target_computer:
+  ros__parameters:
+    target_x: 23.125
+    target_y: 1.510
+    target_z: 0.84
+    map_frame: "map"
+    muzzle_frame: "muzzle"
+    publish_rate: 20.0
+
+# --- LoamAdapter — simulation needs adapted topics ---
+# In simulation, Point-LIO receives converted point clouds from ign_sim_pointcloud_tool.
+# Topic names may differ from real robot.
+loam_adapter:
+  ros__parameters:
+    odom_topic: "aft_mapped_to_init"
+    pcd_topic: "cloud_registered"
+    odom_frame: "odom"
+    base_frame: "base_footprint"
+    lidar_frame: "front_mid360"
+
+# --- Relocalization — simulation uses same GICP params as real ---
+relocalization:
+  ros__parameters:
+    prior_pcd_file: ""                  # FILL IN
+    num_threads: 4
+    num_neighbors: 20
+    global_leaf_size: 0.12
+    registered_leaf_size: 0.12
+    max_dist_sq: 36.0
+    map_frame: "map"
+    odom_frame: "odom"
+    input_scan_topic: "/registered_scan"
+    init_pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
