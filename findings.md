@@ -109,6 +109,13 @@
 - **修复：** `visualize.rviz` 中 `RegisteredScan` 的 Decay Time 从 `0.5` → `3`，减少跳变带来的视觉闪烁；重启 launch 生效
 - **涉及文件：** `src/rmu_gazebo_simulator/rmu_gazebo_simulator/rviz/visualize.rviz`、`install/rmu_gazebo_simulator/share/rmu_gazebo_simulator/rviz/visualize.rviz`
 
+### 白色原始点云在机器人自旋时偏转 (2026-06-29)
+- **现象：** 机器人原地旋转时，RViz 中白色原始点云（`/red_standard_robot1/livox/lidar_fixed`）出现拖影/偏转
+- **根因：** 白色点云经过 `lidar_frame_relay.py` 只修改 `frame_id`，不做运动畸变校正。雷达扫描一帧约 0.1s，自旋时帧内朝向变化大，各点采集时刻的位姿不同但被当作同一时刻渲染，产生偏转
+- **对比：** 绿色点云（`/registered_scan`）经 Point-LIO 逐点 IMU 传播做运动补偿，自旋时保持稳定
+- **结论：** **这不是 bug，是预期行为。** 算法使用的是绿色点云，白色点云仅作可视化参考。如需消除可在 RViz 中去掉白色点云显示
+- **涉及文件：** `lidar_frame_relay.py`（仅转发点云）、`laserMapping.cpp`（绿色点云的逐点补偿逻辑）
+
 ## 资源
 - ITL_Hero_Shoot: /home/lmy/ITL_Hero_Shoot/
 - RM 2026 规则手册: /home/lmy/桌面/RoboMaster 2026 机甲大师超级对抗赛比赛规则手册V2.0.0（20260626）.pdf

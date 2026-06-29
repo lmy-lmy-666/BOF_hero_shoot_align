@@ -335,6 +335,7 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | parameter_bridge 缺 use_sim_time | 上游 spawn_robots 未设置 | 暂不影响功能 |
 | rviz 无点云、Fixed Frame 报错 | ① lidar IP 不对 ② topic 名 / 坐标系名配错 ③ 新 rviz 文件未软链接 | 2025-06-28 已修复，详见下方修改记录 |
 | Ignition 库版本不匹配（编译时） | apt 升级后 Ignition 库 minor 版本变更（如 4.7.0→4.8.1），链接器找不到旧版本 .so | `sudo ln -sf /usr/lib/x86_64-linux-gnu/libignition-<name>.so.<MAJOR> /usr/lib/x86_64-linux-gnu/libignition-<name>.so.<OLD>` ，2026-06-29 已创建全部 16 个符号链接 |
+| 白色原始点云自旋时偏转 | `lidar_frame_relay.py` 只改 frame_id，不做运动畸变校正。雷达扫描一帧约 0.1s，自旋时帧内朝向变化大导致点云拖影 | 预期行为，不影响算法（算法用绿色 `/registered_scan`）。如需消除可在 RViz 中去掉白色点云显示 |
 
 ### 2026-06-28 实车调试修改记录
 
