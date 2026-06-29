@@ -43,15 +43,12 @@ GimbalController::GimbalController(
     });
   // ros pub and sub
   using namespace std::placeholders;
-  auto rmoss_gimbal_cmd_topic = "robot_base/gimbal_cmd";
-  auto rmoss_gimbal_state_topic = "robot_base/gimbal_state";
-  auto gimbal_joint_cmd_topic = "cmd_gimbal_joint";
-  rmoss_gimbal_state_pub_ = node_->create_publisher<rmoss_interfaces::msg::Gimbal>(
-    rmoss_gimbal_state_topic, 10);
-  rmoss_gimbal_cmd_sub_ = node_->create_subscription<rmoss_interfaces::msg::GimbalCmd>(
-    rmoss_gimbal_cmd_topic, 10, std::bind(&GimbalController::gimbal_cb, this, _1));
-  ros_gimbal_cmd_sub_ = node_->create_subscription<sensor_msgs::msg::JointState>(
-    gimbal_joint_cmd_topic, 10, std::bind(&GimbalController::gimbal_joint_cb, this, _1));
+  auto ros_gimbal_cmd_topic = "robot_base/gimbal_cmd";
+  auto ros_gimbal_state_topic = "robot_base/gimbal_state";
+  ros_gimbal_state_pub_ = node_->create_publisher<rmoss_interfaces::msg::Gimbal>(
+    ros_gimbal_state_topic, 10);
+  ros_gimbal_cmd_sub_ = node_->create_subscription<rmoss_interfaces::msg::GimbalCmd>(
+    ros_gimbal_cmd_topic, 10, std::bind(&GimbalController::gimbal_cb, this, _1));
   // timer
   int pid_rate = 100;
   pid_period_ = std::chrono::milliseconds(1000 / pid_rate);
@@ -82,26 +79,7 @@ void GimbalController::gimbal_state_timer_cb()
   rmoss_interfaces::msg::Gimbal gimbal_pos;
   gimbal_pos.pitch = cur_pitch_;
   gimbal_pos.yaw = cur_yaw_;
-  rmoss_gimbal_state_pub_->publish(gimbal_pos);
-}
-
-void GimbalController::gimbal_joint_cb(const sensor_msgs::msg::JointState::SharedPtr msg)
-{
-  // Using ABSOLUTE_ANGLE
-  if (msg->name.size() != msg->position.size()) {
-    RCLCPP_ERROR(
-      node_->get_logger(), "JointState message name and position arrays are of different sizes");
-    return;
-  }
-  for (size_t i = 0; i < msg->name.size(); ++i) {
-    if (msg->name[i] == "gimbal_pitch_joint") {
-      target_pitch_ = msg->position[i];
-    } else if (msg->name[i] == "gimbal_yaw_joint") {
-      target_yaw_ = msg->position[i];
-    }
-  }
-  // limitation for pitch
-  target_pitch_ = std::clamp(target_pitch_, -1.0, 1.0);
+  ros_gimbal_state_pub_->publish(gimbal_pos);
 }
 
 void GimbalController::gimbal_cb(const rmoss_interfaces::msg::GimbalCmd::SharedPtr msg)

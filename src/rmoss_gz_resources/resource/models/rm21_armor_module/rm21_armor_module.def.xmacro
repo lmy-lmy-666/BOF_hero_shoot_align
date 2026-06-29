@@ -76,7 +76,6 @@
                 <material>
                     <ambient>1.0 1.0 1.0</ambient>
                     <diffuse>1.0 1.0 1.0</diffuse>
-                    <emissive>1.0 1.0 1.0</emissive>
                     <specular>0.5 0.5 0.5</specular>
                 </material>
             </visual>

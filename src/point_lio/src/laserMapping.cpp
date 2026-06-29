@@ -398,9 +398,9 @@ int main(int argc, char ** argv)
   auto sub_imu =
     nh->create_subscription<sensor_msgs::msg::Imu>(imu_topic, rclcpp::SensorDataQoS(), imu_cbk);
   auto pub_laser_cloud_full_res =
-    nh->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_registered", 20);
+    nh->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_registered", 100);
   auto pub_laser_cloud_full_res_body =
-    nh->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_registered_body", 20);
+    nh->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_registered_body", 100);
   auto pub_laser_cloud_effect =
     nh->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_effected", 20);
   auto pub_laser_cloud_map = nh->create_publisher<sensor_msgs::msg::PointCloud2>("Laser_map", 20);

@@ -132,3 +132,36 @@
 
 ### 文档更新
 - ✅ findings.md：新增白色点云偏转问题记录
+
+## 会话：2026-06-29（Jazzy 迁移）
+
+### 构建兼容性修复
+- ✅ `rmoss_gazebo/`：ignition-* → gz-* 包名迁移（从 `/home/lmy/桌面/rm_jazzy/` 同步）
+- ✅ `rmoss_gz_resources/`：模型文件 + env-hook 更新（IGN_GAZEBO_RESOURCE_PATH → GZ_SIM_RESOURCE_PATH）
+- ✅ `rmoss_interfaces/`：CMakeLists 更新（从参考同步）
+- ✅ `pb2025_robot_description/`：env-hook + package.xml 模型路径更新
+- ✅ `hero_localization/CMakeLists.txt`：`project(LANGUAGES C CXX)` + `find_package(MPI)` 修复 VTK/MPI 编译错误
+- ✅ `rmoss_gz_bridge/CMakeLists.txt`：从 Humble 合并 rfid_bridge target
+- ✅ `rfid_bridge_node.*`：ignition → gz 头文件/命名空间迁移
+
+### 启动兼容性修复
+- ✅ `gazebo.launch.py`：gz_version `6→8`（匹配 Gazebo Harmonic）
+- ✅ `spawn_robots.launch.py`：`ign service` → `gz service`
+- ✅ `rmu_gazebo_simulator/`：从 Humble 同步，仅改 gz_version
+
+### 点云反复横跳修复
+- ✅ RawLidar：切换 Cyclone DDS (`rmw_cyclonedds_cpp`)，C++ BEST_EFFORT relay 替代 Python relay
+- ✅ RegisteredScan：全链路 depth 增大（loam_adapter 5→50, Point-LIO 20→100, RViz 5→100）
+- ✅ Cyclone DDS 配置：`/home/lmy/cyclonedds.xml`，绑定 lo 接口
+
+### 当前状态
+| 组件 | 状态 |
+|------|------|
+| 全部 19 个包编译安装 | ✅ |
+| 仿真启动（Gazebo + RViz + Point-LIO） | ✅ |
+| RawLidar 点云显示 | ✅ 稳定 |
+| RegisteredScan 点云显示 | ✅ 稳定 |
+| TF 链 map→odom→base→chassis→muzzle | ✅ |
+| Cyclone DDS | ✅ 已配置 |
+| 系统 UDP 缓冲 (25MB) | ✅ |
+| 模型 mesh 显示 | ✅ |

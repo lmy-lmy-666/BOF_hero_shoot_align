@@ -37,7 +37,13 @@ source install/setup.bash
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select <包名>
 ```
 
-> **首次编译或系统库更新后**：如果遇到 Ignition 库链接错误（`找不到 libignition-*.so.x.y.z`），说明系统 Ignition Gazebo 库版本被 apt 升级了。参见下方「已知问题」表格中的 `Ignition 库版本不匹配` 解决方案。
+> **首次编译前**：确保 Cyclone DDS 已安装（`sudo apt install ros-jazzy-rmw-cyclonedds-cpp`），workspace 的 `install/setup.bash` 会自动启用。详见「已知问题」表格中的 `点云反复横跳`。
+
+> **UDP 缓冲优化**（首次使用需执行一次，重启后失效，建议写入 `/etc/sysctl.conf`）：
+> ```bash
+> echo "12" | sudo -S sysctl -w net.core.rmem_max=26214400
+> echo "12" | sudo -S sysctl -w net.core.wmem_max=26214400
+> ```
 
 ## 仿真 vs 实车
 
@@ -126,7 +132,7 @@ tf_ready: true     # TF 链完整时才为 true
 ### 键盘遥控
 
 ```bash
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard \
   --ros-args -r cmd_vel:=/red_standard_robot1/cmd_vel
 ```
@@ -220,6 +226,7 @@ src/
 | RViz 实车定位配置 | `src/hero_bringup/rviz/visualize_robot.rviz` |
 | RViz 实车建图配置 | `src/hero_bringup/rviz/visualize_robot_slam.rviz` |
 | RViz 仿真配置 | `src/rmu_gazebo_simulator/rmu_gazebo_simulator/rviz/visualize.rviz` |
+| Cyclone DDS 配置 | `/home/lmy/cyclonedds.xml` |
 | 点云转换器 | `src/rmu_gazebo_simulator/rmu_gazebo_simulator/config/cloud_converter.yaml` |
 | 机器人 URDF | `src/hero_description/urdf/hero_robot.urdf.xacro` |
 | 先验地图 | `src/hero_bringup/pcd/Hero.pcd` |
@@ -333,9 +340,10 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | Message Filter dropping（启动时） | TF 树未建完，早期帧丢弃 | 无害，稳定后自动恢复 |
 | GICP 可能收敛到错误位置 | 先验地图与仿真世界几何不完全匹配 | 用 init_pose 硬对齐 + drift guard |
 | parameter_bridge 缺 use_sim_time | 上游 spawn_robots 未设置 | 暂不影响功能 |
-| rviz 无点云、Fixed Frame 报错 | ① lidar IP 不对 ② topic 名 / 坐标系名配错 ③ 新 rviz 文件未软链接 | 2025-06-28 已修复，详见下方修改记录 |
-| Ignition 库版本不匹配（编译时） | apt 升级后 Ignition 库 minor 版本变更（如 4.7.0→4.8.1），链接器找不到旧版本 .so | `sudo ln -sf /usr/lib/x86_64-linux-gnu/libignition-<name>.so.<MAJOR> /usr/lib/x86_64-linux-gnu/libignition-<name>.so.<OLD>` ，2026-06-29 已创建全部 16 个符号链接 |
-| 白色原始点云自旋时偏转 | `lidar_frame_relay.py` 只改 frame_id，不做运动畸变校正。雷达扫描一帧约 0.1s，自旋时帧内朝向变化大导致点云拖影 | 预期行为，不影响算法（算法用绿色 `/registered_scan`）。如需消除可在 RViz 中去掉白色点云显示 |
+| 点云反复横跳（RawLidar/RegisteredScan 正常/错误切换） | Fast-RTPS BEST_EFFORT over UDP，2MB 点云帧溢出 208KB 缓冲 | ✅ 已修复：切换 Cyclone DDS + C++ relay + 全链路 depth 增大。workspace 自动启用 Cyclone DDS（`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`） |
+| 模型 mesh 找不到 | env-hook 导出旧变量 `IGN_GAZEBO_RESOURCE_PATH`，Harmonic 需 `GZ_SIM_RESOURCE_PATH` | ✅ 已修复：`.dsv.in` + `package.xml` 更新 |
+| Gazebo 启动报 `ign` 命令不存在 | Gazebo Harmonic 命令改为 `gz` | ✅ 已修复：`gazebo.launch.py` gz_version 6→8 |
+| 白色原始点云自旋时偏转 | relay 只改 frame_id，不做运动畸变校正 | 预期行为，不影响算法（算法用绿色 `/registered_scan`） |
 
 ### 2026-06-28 实车调试修改记录
 
@@ -350,10 +358,19 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | `hero_bringup.launch.py` | 新增鲁棒性参数：`lidar_meas_cov=0.001`, `imu_meas_acc/omg_cov=0.1`, `gravity_init=[4.905,0,-8.496]` | 来自 ITL 实车验证：降低 IMU 权重、修正 30° 安装角重力方向 |
 | `install/` 目录 | 手动 `ln -s` visualize_robot_slam.rviz | 新文件不会被 `colcon build` 自动安装 |
 
-### 2026-06-29 构建与环境修复
+### 2026-06-29 Jazzy 迁移（Humble → Ubuntu 24.04 + Gazebo Harmonic）
 
-| 问题 | 修复 | 原因 |
-|------|------|------|
-| BOF install 目录残缺，缺失 hero_localization、hero_bringup 等核心包 | `colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release` 完整重编译全部 19 个包 | 之前构建未正确安装到 install/，导致 launch 混用 BOF 与 hero_shoot 两个 workspace 的包，TF / robot_description 不一致，rviz2 无法渲染机器人模型 |
-| Ignition 库版本不匹配，`rmoss_gz_plugins` 链接失败 | 创建 16 个旧版本 .so 符号链接（如 `libignition-common4.so.4.7.0 → .so.4` 等），指向当前系统库版本 | apt 升级 Ignition Gazebo 库 minor 版本（4.7.0→4.8.1, 11.4.1→11.4.2 等），但 cmake imported targets 仍引用旧版本 |
-| 构建模式为 Debug（CMake 无 `CMAKE_BUILD_TYPE`）  | 改为 `Release` 模式构建 | Debug 二进制体积 ~4x，无优化，可能导致性能问题 |
+| 改动 | 说明 |
+|------|------|
+| `rmoss_gazebo/` 全部子包 | ignition-* → gz-* 包名迁移，从 `/home/lmy/桌面/rm_jazzy/` 同步 |
+| `rmoss_gz_resources/` | env-hook 更新（`IGN_GAZEBO_RESOURCE_PATH` → `GZ_SIM_RESOURCE_PATH`），package.xml 添加 gazebo_ros export |
+| `pb2025_robot_description/` | 同上 |
+| `hero_localization/CMakeLists.txt` | `project(LANGUAGES C CXX)` + `find_package(MPI)` 修复 VTK/MPI 编译错误 |
+| `gazebo.launch.py` | gz_version `6→8`（匹配 Gazebo Harmonic） |
+| `spawn_robots.launch.py` | `ign service` → `gz service` |
+| `lidar_frame_relay` | Python → C++ BEST_EFFORT relay（消除 GIL 瓶颈） |
+| `loam_adapter_node.cpp` | depth 5→50 |
+| `laserMapping.cpp`（Point-LIO） | cloud_registered pub depth 20→100 |
+| `visualize.rviz` | RawLidar/RegisteredScan depth 5→100 |
+| 新增 `cyclonedds.xml` | Cyclone DDS 配置（`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`） |
+| UDP 缓冲 | 系统默认 208KB → 25MB |

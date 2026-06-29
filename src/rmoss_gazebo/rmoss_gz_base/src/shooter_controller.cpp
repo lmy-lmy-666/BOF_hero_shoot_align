@@ -29,25 +29,14 @@ ShooterController::ShooterController(
   (void)controller_name;
   // create ros pub and sub
   using namespace std::placeholders;
-  std::string rmoss_shoot_cmd_topic = "robot_base/shoot_cmd";
-  std::string ros_shoot_cmd_topic = "cmd_shoot";
-  rmoss_shoot_cmd_sub_ = node_->create_subscription<rmoss_interfaces::msg::ShootCmd>(
-    rmoss_shoot_cmd_topic, 10, std::bind(&ShooterController::rmoss_shoot_cb, this, _1));
-  ros_shoot_cmd_sub_ = node_->create_subscription<example_interfaces::msg::UInt8>(
-    ros_shoot_cmd_topic, 10, std::bind(&ShooterController::ros_shoot_cb, this, _1));
+  std::string ros_shoot_cmd_topic = "robot_base/shoot_cmd";
+  ros_shoot_cmd_sub_ = node_->create_subscription<rmoss_interfaces::msg::ShootCmd>(
+    ros_shoot_cmd_topic, 10, std::bind(&ShooterController::shoot_cb, this, _1));
 }
 
-void ShooterController::rmoss_shoot_cb(const rmoss_interfaces::msg::ShootCmd::SharedPtr msg)
+void ShooterController::shoot_cb(const rmoss_interfaces::msg::ShootCmd::SharedPtr msg)
 {
   shoot_actuator_->set(*msg);
-}
-
-void ShooterController::ros_shoot_cb(const example_interfaces::msg::UInt8::SharedPtr msg)
-{
-  rmoss_interfaces::msg::ShootCmd cmd;
-  cmd.projectile_velocity = 18.0;
-  cmd.projectile_num = msg->data;
-  shoot_actuator_->set(cmd);
 }
 
 }  // namespace rmoss_gz_base

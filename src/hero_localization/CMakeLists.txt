@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(hero_localization VERSION 0.1.0 LANGUAGES CXX)
+project(hero_localization VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,6 +21,8 @@ find_package(hero_interfaces REQUIRED)
 find_package(hero_core REQUIRED)
 
 # PCL (for relocalization)
+# MPI must be found before PCL/VTK on Ubuntu 24.04 to populate MPI::MPI_C
+find_package(MPI REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io filters)
 find_package(pcl_conversions REQUIRED)
 find_package(pcl_ros REQUIRED)

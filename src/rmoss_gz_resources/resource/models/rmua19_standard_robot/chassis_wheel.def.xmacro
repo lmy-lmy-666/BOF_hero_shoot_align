@@ -14,8 +14,6 @@
                 <limit>
                     <lower>-1.79769e+308</lower>
                     <upper>1.79769e+308</upper>
-					<effort>1e+10</effort>
-					<velocity>1e+10</velocity>
                 </limit>
             </axis>
         </joint>
@@ -53,8 +51,6 @@
                 <limit>
                     <lower>-1.79769e+308</lower>
                     <upper>1.79769e+308</upper>
-					<effort>1e+10</effort>
-					<velocity>1e+10</velocity>
                 </limit>
             </axis>
         </joint>

@@ -7,12 +7,6 @@
     <xmacro_include uri="model://rmua19_standard_robot/chassis_wheel.def.xmacro" />
     <!--macro defination: rmua19_standard_robot-->
     <xmacro_define_block name="rmua19_standard_robot" params="sticker_type">
-        <link name="base_footprint" />
-        <joint name="base_to_chassis" type="fixed">
-            <pose>0 0 0.076 0 0 0</pose>
-            <parent>base_footprint</parent>
-            <child>chassis</child>
-        </joint>
         <!--chassis-->
         <link name="chassis" >
             <inertial>
@@ -59,10 +53,8 @@
             <axis>
                 <xyz>0 0 1</xyz>
                 <limit>
-                    <effort>100</effort>
-					<velocity>50</velocity>
-					<lower>-1.79769e+308</lower>
-					<upper>1.79769e+308</upper>
+                    <lower>-1.57</lower>
+                    <upper>1.57</upper>
                 </limit>
             </axis>
         </joint>
@@ -88,10 +80,8 @@
             <axis>
                 <xyz>0 1 0</xyz>
                 <limit>
-                    <effort>100</effort>
                     <lower>${-3.14*0.25}</lower>
                     <upper>${3.14*0.18}</upper>
-					<velocity>50</velocity>
                 </limit>
             </axis>
         </joint>

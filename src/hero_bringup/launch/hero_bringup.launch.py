@@ -108,7 +108,7 @@ def generate_launch_description():
             else:
                 # 定位模式：relay + 定位节点
                 actions.append(Node(
-                    package='hero_bringup', executable='lidar_frame_relay.py',
+                    package='hero_bringup', executable='lidar_frame_relay',
                     name='lidar_frame_relay', output='screen',
                     parameters=[{'use_sim_time': True}]))
 

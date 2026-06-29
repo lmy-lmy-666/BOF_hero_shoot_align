@@ -43,7 +43,7 @@ Visualization Manager:
       Description File: ""
       Description Source: Topic
       Description Topic:
-        Depth: 5
+        Depth: 50
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
@@ -88,7 +88,7 @@ Visualization Manager:
       Value: true
       Topic:
         Value: /cloud_registered
-        Depth: 5
+        Depth: 50
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
@@ -106,7 +106,7 @@ Visualization Manager:
       Value: true
       Topic:
         Value: /odom
-        Depth: 5
+        Depth: 50
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
@@ -128,7 +128,7 @@ Visualization Manager:
       Value: true
       Topic:
         Value: /path
-        Depth: 5
+        Depth: 50
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
@@ -149,7 +149,7 @@ Visualization Manager:
       Value: true
       Topic:
         Value: /target_computer/target_line
-        Depth: 5
+        Depth: 50
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable

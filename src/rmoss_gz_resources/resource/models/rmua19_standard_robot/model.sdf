@@ -77,8 +77,6 @@
 				<limit>
 					<lower>-1.79769e+308</lower>
 					<upper>1.79769e+308</upper>
-					<effort>1e+10</effort>
-					<velocity>1e+10</velocity>
 				</limit>
 			</axis>
 		</joint>
@@ -131,8 +129,6 @@
 				<limit>
 					<lower>-1.79769e+308</lower>
 					<upper>1.79769e+308</upper>
-					<effort>1e+10</effort>
-					<velocity>1e+10</velocity>
 				</limit>
 			</axis>
 		</joint>
@@ -185,8 +181,6 @@
 				<limit>
 					<lower>-1.79769e+308</lower>
 					<upper>1.79769e+308</upper>
-					<effort>1e+10</effort>
-					<velocity>1e+10</velocity>
 				</limit>
 			</axis>
 		</joint>
@@ -239,8 +233,6 @@
 				<limit>
 					<lower>-1.79769e+308</lower>
 					<upper>1.79769e+308</upper>
-					<effort>1e+10</effort>
-					<velocity>1e+10</velocity>
 				</limit>
 			</axis>
 		</joint>
@@ -291,10 +283,8 @@
 			<axis>
 				<xyz>0 0 1</xyz>
 				<limit>
-					<effort>100</effort>
-					<velocity>50</velocity>
-					<lower>-1.79769e+308</lower>
-					<upper>1.79769e+308</upper>
+					<lower>-1.57</lower>
+					<upper>1.57</upper>
 				</limit>
 			</axis>
 		</joint>
@@ -336,10 +326,8 @@
 			<axis>
 				<xyz>0 1 0</xyz>
 				<limit>
-					<effort>100</effort>
 					<lower>-0.785</lower>
 					<upper>0.5652</upper>
-					<velocity>50</velocity>
 				</limit>
 			</axis>
 		</joint>
@@ -479,7 +467,6 @@
 				<material>
 					<ambient>1.0 1.0 1.0</ambient>
 					<diffuse>1.0 1.0 1.0</diffuse>
-					<emissive>1.0 1.0 1.0</emissive>
 					<specular>0.5 0.5 0.5</specular>
 				</material>
 			</visual>
@@ -612,7 +599,6 @@
 				<material>
 					<ambient>1.0 1.0 1.0</ambient>
 					<diffuse>1.0 1.0 1.0</diffuse>
-					<emissive>1.0 1.0 1.0</emissive>
 					<specular>0.5 0.5 0.5</specular>
 				</material>
 			</visual>
@@ -745,7 +731,6 @@
 				<material>
 					<ambient>1.0 1.0 1.0</ambient>
 					<diffuse>1.0 1.0 1.0</diffuse>
-					<emissive>1.0 1.0 1.0</emissive>
 					<specular>0.5 0.5 0.5</specular>
 				</material>
 			</visual>
@@ -878,7 +863,6 @@
 				<material>
 					<ambient>1.0 1.0 1.0</ambient>
 					<diffuse>1.0 1.0 1.0</diffuse>
-					<emissive>1.0 1.0 1.0</emissive>
 					<specular>0.5 0.5 0.5</specular>
 				</material>
 			</visual>

@@ -116,6 +116,50 @@
 - **结论：** **这不是 bug，是预期行为。** 算法使用的是绿色点云，白色点云仅作可视化参考。如需消除可在 RViz 中去掉白色点云显示
 - **涉及文件：** `lidar_frame_relay.py`（仅转发点云）、`laserMapping.cpp`（绿色点云的逐点补偿逻辑）
 
+## 2026-06-29 会话：Jazzy 迁移
+
+### Humble → Jazzy 关键差异
+
+| 差异点 | Humble (Ubuntu 22.04) | Jazzy (Ubuntu 24.04) |
+|--------|----------------------|---------------------|
+| Gazebo 版本 | Fortress (v6) | Harmonic (v8) |
+| 包命名 | `ignition-msgs8`, `ignition-transport11`, `ignition-gazebo6` | `gz-msgs10`, `gz-transport13`, `gz-sim8` |
+| 命名空间 | `ignition::msgs`, `ignition::transport` | `gz::msgs`, `gz::transport` |
+| 头文件 | `ignition/transport/Node.hh` | `gz/transport/Node.hh` |
+| 命令 | `ign` | `gz` |
+| 环境变量 | `IGN_GAZEBO_RESOURCE_PATH` | `GZ_SIM_RESOURCE_PATH` |
+| VTK | 无 MPI 依赖问题 | VTK::mpi 需要 MPI::MPI_C target |
+| CMake 语言 | 仅 CXX 可编译 | 需 C+CXX 以创建 MPI::MPI_C |
+| DDS 默认 | 可能为 Cyclone DDS | Fast-RTPS |
+| UDP 缓冲默认 | 212KB | 212KB（不够 2MB 点云） |
+
+### Ignition → Gazebo 命名迁移
+- **涉及包：** `rmoss_gz_plugins`, `rmoss_gz_base`, `rmoss_gz_bridge`, `rmoss_gz_cam`
+- **修复：** 从 `/home/lmy/桌面/rm_jazzy/` 同步 jazzy 兼容版本
+- **注意：** `rmoss_gz_bridge` 的 rfid_bridge 为用户独有代码，需手动合并并改写 ignition→gz
+
+### 模型资源路径
+- **现象：** Gazebo GUI 报 `Unable to find file with URI [model://rmua19_standard_robot/...]`
+- **根因：** 两个包的环境 hook 导出了旧变量 `IGN_GAZEBO_RESOURCE_PATH`，Gazebo Harmonic 只识别 `GZ_SIM_RESOURCE_PATH`
+- **修复：** 更新 `.dsv.in` 模板 + `package.xml` 添加 `<gazebo_ros gazebo_model_path>` 导出
+- **涉及：** `rmoss_gz_resources`, `pb2025_robot_description`
+
+### RawLidar/RegisteredScan 反复横跳
+- **现象：** RViz 点云显示在正常/错误之间反复切换
+- **根因：** 三层问题叠加
+  1. Fast-RTPS BEST_EFFORT over UDP，2MB 点云帧在 208KB 缓冲下溢出丢帧
+  2. Python relay（GIL 瓶颈）+ 小队列（depth=5）无法消化 18Hz 吞吐
+  3. RViz subscriber depth=5，渲染延迟导致自行丢帧
+- **修复：**
+  1. 切换 Cyclone DDS（`rmw_cyclonedds_cpp`，配置 `cyclonedds.xml` 绑定 lo 口）
+  2. C++ relay 替代 Python relay（BEST_EFFORT, depth=10）
+  3. 全链路队列增大：loam_adapter 5→50, Point-LIO 20→100, RViz 5→100
+
+### Cyclone DDS 配置
+- **文件：** `/home/lmy/cyclonedds.xml`
+- **关键配置：** `Domain id="0"`, `NetworkInterface name="lo"`, `DontRoute=true`
+- **启用：** `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp CYCLONEDDS_URI=file:///home/lmy/cyclonedds.xml`
+
 ## 资源
 - ITL_Hero_Shoot: /home/lmy/ITL_Hero_Shoot/
 - RM 2026 规则手册: /home/lmy/桌面/RoboMaster 2026 机甲大师超级对抗赛比赛规则手册V2.0.0（20260626）.pdf

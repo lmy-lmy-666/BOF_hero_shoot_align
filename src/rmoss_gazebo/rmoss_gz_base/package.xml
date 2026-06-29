@@ -10,15 +10,13 @@
     <depend>rclcpp</depend>
     <depend>std_msgs</depend>
     <depend>geometry_msgs</depend>
-    <depend>sensor_msgs</depend>
-    <depend>example_interfaces</depend>
     <depend>rmoss_interfaces</depend>
     <depend>ros_gz_bridge</depend>
     <depend>rmoss_gz_resources</depend>
     <depend>rmoss_gz_plugins</depend>
     <!-- Gazebo Fortress  (default) -->
-    <depend>ignition-msgs8</depend>
-    <depend>ignition-transport11</depend>
+    <depend>gz-msgs10</depend>
+    <depend>gz-transport13</depend>
 
     <test_depend>ament_lint_auto</test_depend>
     <test_depend>ament_lint_common</test_depend>

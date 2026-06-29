@@ -53,7 +53,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "gz_version": "6",
+            "gz_version": "8",
             "gz_args": [
                 world_sdf_path,
                 TextSubstitution(text=" --gui-config "),

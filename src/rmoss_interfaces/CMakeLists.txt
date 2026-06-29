@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(rmoss_interfaces)
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -20,9 +20,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/referee/RefereeCmd.msg"
   "msg/referee/GameStatus.msg"
   "msg/referee/RobotStatus.msg"
-  "msg/referee/RfidStatus.msg"
-  "msg/referee/RfidStatusArray.msg"
-  "msg/referee/ExchangeAmmon.msg"
   "msg/Gimbal.msg"
   "msg/GimbalCmd.msg"
   "msg/ShootCmd.msg"
@@ -33,7 +30,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetCameraInfo.srv"
   "srv/GetTaskStatus.srv"
   "srv/ControlTask.srv"
-  "srv/ExchangeAmmon.srv"
 DEPENDENCIES
   builtin_interfaces
   std_msgs

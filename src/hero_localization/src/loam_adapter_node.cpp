@@ -36,12 +36,11 @@ LoamAdapterNode::LoamAdapterNode(const rclcpp::NodeOptions & options)
     std::bind(&LoamAdapterNode::publishTfFallback, this));
 
   // --- Publishers ---
-  odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 5);
-  pcd_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("registered_scan", 5);
+  odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
+  pcd_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("registered_scan", 50);
 
   // --- Subscribers ---
-  // QoS profile matching Point-LIO's output (typically sensor_data + keep_last)
-  auto qos = rclcpp::QoS(rclcpp::KeepLast(5));
+  auto qos = rclcpp::QoS(rclcpp::KeepLast(50));
   qos.reliable();
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
