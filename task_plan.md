@@ -122,7 +122,6 @@ hero_bringup/       顶层入口 + 工具脚本
 ```
 sim_adapter/              仿真桥接（双yaw→单yaw、Gimbal→JointState）
 rmu_gazebo_simulator/     Gazebo 世界 + RViz 配置 + 桥接配置
-rmoss_core/               底盘/云台控制器
 rmoss_gazebo/             底盘底座驱动
 rmoss_gz_resources/       仿真资源
 rmoss_interfaces/         自定义消息

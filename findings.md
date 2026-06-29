@@ -36,7 +36,7 @@
 | RViz 固定帧用 map | 全局视角，与参考项目一致 |
 | relocalization 发布 prior_map | 参考项目做法，transient_local QoS |
 | lidar_frame_relay 修正 frame_id | ros_gz_bridge 输出 scoped 名与 TF 树不匹配 |
-| 不依赖 rmoss_core | 避免引入整套仿真框架依赖 |
+| 不依赖 rmoss_core | 避免引入整套仿真框架依赖（已移除） |
 
 ## 已解决问题
 

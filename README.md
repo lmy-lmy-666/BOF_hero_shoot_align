@@ -202,7 +202,9 @@ src/
 │
 ├── sim_adapter/            ← 拷贝自 ITL（仿真桥接）
 ├── rmu_gazebo_simulator/   ← 拷贝自 ITL（Gazebo 世界 + RViz 配置）
-├── rmoss_*/                ← 拷贝自 ITL（仿真控制器）
+├── rmoss_gazebo/           ← 拷贝自 ITL（Gazebo 底盘/云台插件）
+├── rmoss_gz_resources/     ← 拷贝自 ITL（仿真资源模型）
+├── rmoss_interfaces/       ← 拷贝自 ITL（RM 自定义消息）
 ├── point_lio/              ← 拷贝自 ITL（Point-LIO SLAM）
 ├── ign_sim_pointcloud_tool ← 拷贝自 ITL（LiDAR 格式转换）
 └── pb2025_robot_description← 拷贝自 ITL（机器人 SDF 模型）
