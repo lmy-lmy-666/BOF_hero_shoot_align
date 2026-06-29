@@ -3,7 +3,7 @@
 ## 快速开始
 
 ```bash
-cd /home/lmy/hero_shoot
+cd /home/lmy/BOF_hero_shoot_align
 source install/setup.bash
 
 # 仿真模式（默认）
@@ -28,14 +28,16 @@ ros2 topic echo /target_computer/target_distance
 ## 编译
 
 ```bash
-# 全量编译
-cd /home/lmy/hero_shoot
-colcon build --symlink-install
+# 全量编译（Release 模式，务必使用 Release 避免 Debug 性能问题）
+cd /home/lmy/BOF_hero_shoot_align
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 source install/setup.bash
 
 # 增量编译（只改了一个包时）
-colcon build --symlink-install --packages-select <包名>
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select <包名>
 ```
+
+> **首次编译或系统库更新后**：如果遇到 Ignition 库链接错误（`找不到 libignition-*.so.x.y.z`），说明系统 Ignition Gazebo 库版本被 apt 升级了。参见下方「已知问题」表格中的 `Ignition 库版本不匹配` 解决方案。
 
 ## 仿真 vs 实车
 
@@ -332,8 +334,9 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | GICP 可能收敛到错误位置 | 先验地图与仿真世界几何不完全匹配 | 用 init_pose 硬对齐 + drift guard |
 | parameter_bridge 缺 use_sim_time | 上游 spawn_robots 未设置 | 暂不影响功能 |
 | rviz 无点云、Fixed Frame 报错 | ① lidar IP 不对 ② topic 名 / 坐标系名配错 ③ 新 rviz 文件未软链接 | 2025-06-28 已修复，详见下方修改记录 |
+| Ignition 库版本不匹配（编译时） | apt 升级后 Ignition 库 minor 版本变更（如 4.7.0→4.8.1），链接器找不到旧版本 .so | `sudo ln -sf /usr/lib/x86_64-linux-gnu/libignition-<name>.so.<MAJOR> /usr/lib/x86_64-linux-gnu/libignition-<name>.so.<OLD>` ，2026-06-29 已创建全部 16 个符号链接 |
 
-### 2025-06-28 实车调试修改记录
+### 2026-06-28 实车调试修改记录
 
 | 文件 | 改动 | 原因 |
 |------|------|------|
@@ -345,3 +348,11 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | `visualize_robot_slam.rviz`（新建） | 同上 + Fixed Frame → `camera_init` | SLAM 模式无 map 坐标系 |
 | `hero_bringup.launch.py` | 新增鲁棒性参数：`lidar_meas_cov=0.001`, `imu_meas_acc/omg_cov=0.1`, `gravity_init=[4.905,0,-8.496]` | 来自 ITL 实车验证：降低 IMU 权重、修正 30° 安装角重力方向 |
 | `install/` 目录 | 手动 `ln -s` visualize_robot_slam.rviz | 新文件不会被 `colcon build` 自动安装 |
+
+### 2026-06-29 构建与环境修复
+
+| 问题 | 修复 | 原因 |
+|------|------|------|
+| BOF install 目录残缺，缺失 hero_localization、hero_bringup 等核心包 | `colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release` 完整重编译全部 19 个包 | 之前构建未正确安装到 install/，导致 launch 混用 BOF 与 hero_shoot 两个 workspace 的包，TF / robot_description 不一致，rviz2 无法渲染机器人模型 |
+| Ignition 库版本不匹配，`rmoss_gz_plugins` 链接失败 | 创建 16 个旧版本 .so 符号链接（如 `libignition-common4.so.4.7.0 → .so.4` 等），指向当前系统库版本 | apt 升级 Ignition Gazebo 库 minor 版本（4.7.0→4.8.1, 11.4.1→11.4.2 等），但 cmake imported targets 仍引用旧版本 |
+| 构建模式为 Debug（CMake 无 `CMAKE_BUILD_TYPE`）  | 改为 `Release` 模式构建 | Debug 二进制体积 ~4x，无优化，可能导致性能问题 |

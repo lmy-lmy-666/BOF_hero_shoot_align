@@ -97,7 +97,7 @@ Visualization Manager:
       Color Transformer: FlatColor
       Color: 0; 255; 0
       Alpha: 1
-      Decay Time: 0.5
+      Decay Time: 3
       Use Fixed Frame: true
 
     - Class: rviz_default_plugins/PointCloud2

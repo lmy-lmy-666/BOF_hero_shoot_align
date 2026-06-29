@@ -145,4 +145,4 @@ utils/                    工具库
 
 ## 备注
 - 参考项目：/home/lmy/ITL_Hero_Shoot/
-- 项目根目录：/home/lmy/hero_shoot/
+- 项目根目录：/home/lmy/BOF_hero_shoot_align/

@@ -87,6 +87,27 @@
 
 - **Hero.pcd 与 Gazebo 仿真世界几何不完全匹配**：GICP 可能收敛到错误位置。用 init_pose 硬对齐 + drift guard 兜底。长期需在 Gazebo 仿真中重新采集地图 PCD。
 - **parameter_bridge 缺 use_sim_time**：上游 spawn_robots.launch.py 未设置，暂不影响功能
+- **Ignition 库版本不匹配**：apt 升级 Ignition Gazebo 后 minor 版本变更（如 4.7.0→4.8.1），导致链接失败。已创建 16 个符号链接解决。如果以后 apt 再次升级，可能需重新创建符号链接。
+
+## 2026-06-29 会话：构建修复
+
+### install 目录残缺导致 rviz2 无机器人模型
+- **现象：** rviz2 中收不到机器人模型，target_computer 持续报 TF `map→muzzle` 查找失败（Requested time 0.400000）
+- **根因：** BOF install 目录缺失 hero_localization、hero_bringup、point_lio、sim_adapter 等关键包（仅 11 个包，应有 19 个），launch 时混用了 BOF 和 hero_shoot 两个 workspace 的包，导致 TF、robot_description 等资源不一致
+- **修复：** 完整重编译全部 19 个包（`colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release`），确保 BOF workspace 自包含
+- **触发完整重建的原因：** 之前 BOF 构建未指定 `CMAKE_BUILD_TYPE`（默认 Debug），二进制与 hero_shoot 的 Release 构建不一致
+
+### Ignition 库版本不匹配
+- **现象：** `rmoss_gz_plugins` 编译失败，链接器报告缺少 `libignition-common4-graphics.so.4.7.0` 等 16 个特定 minor 版本的 .so 文件
+- **根因：** 系统 Ignition Gazebo 库被 apt 升级（如 common4: 4.7.0→4.8.1, transport11: 11.4.1→11.4.2），cmake imported targets 引用的旧版本 .so 已不存在
+- **修复：** 创建符号链接将旧版本指向当前版本（`sudo ln -sf libignition-<name>.so.<MAJOR> libignition-<name>.so.<OLD>`）
+
+### 绿色点云闪烁（RegisteredScan 一会儿有、一会儿消失）
+- **现象：** RViz 中绿色点云间歇性消失又出现，数据频率正常（~15Hz）
+- **排查：** `ros2 topic hz /registered_scan` 频率 15Hz 稳定，排除数据中断；min-max 间隔 0.035~0.179s < 0.5s Decay Time，排除超时
+- **根因：** `relocalization` 运行 GICP 匹配，结果更新 `map→odom` TF。每次更新可能导致 odom 帧中的点云经 `map→odom` 变换后位置跳动。配合 0.5s 的 Decay Time，视觉上产生消失效果
+- **修复：** `visualize.rviz` 中 `RegisteredScan` 的 Decay Time 从 `0.5` → `3`，减少跳变带来的视觉闪烁；重启 launch 生效
+- **涉及文件：** `src/rmu_gazebo_simulator/rmu_gazebo_simulator/rviz/visualize.rviz`、`install/rmu_gazebo_simulator/share/rmu_gazebo_simulator/rviz/visualize.rviz`
 
 ## 资源
 - ITL_Hero_Shoot: /home/lmy/ITL_Hero_Shoot/

@@ -86,3 +86,35 @@
 
 ---
 *每次会话结束后更新此文件*
+
+## 会话：2026-06-29（构建修复）
+
+### 问题诊断
+- ✅ 诊断 rviz2 不显示机器人模型：BOF install 目录残缺（仅 11/19 个包），缺失 hero_localization、hero_bringup 等
+- ✅ 对比 hero_shoot 与 BOF_hero_shoot_align 源码 → 完全一致，排除代码差异
+- ✅ 发现 BOF 构建为 Debug 模式（无 CMAKE_BUILD_TYPE），hero_shoot 为 Release
+
+### 构建修复
+- ✅ 创建 16 个 Ignition 库旧版本符号链接（系统库升级导致 minor 版本不匹配）
+- ✅ 完整重编译全部 19 个包（Release 模式），BOF workspace 现已完全自包含
+- ✅ 验证 install 目录完整性：19 个包全部就位
+
+### 文档更新
+- ✅ README.md：路径修正、构建说明、已知问题表格、2026-06-29 修改记录
+- ✅ task_plan.md：项目路径修正
+- ✅ findings.md：新增 Ignition 库问题和构建修复记录
+- ✅ progress.md：新增本日会话记录
+
+### 绿色点云闪烁修复
+- ✅ 诊断：数据频率 15Hz 正常，排除中断；确认 relocalization GICP 更新 map→odom TF 导致 odom 帧点云位置跳动
+- ✅ 修复：`visualize.rviz` 中 RegisteredScan Decay Time `0.5` → `3`，减少跳变闪烁
+- ✅ 更新 findings.md 记录该问题
+
+### 当前状态
+| 组件 | 状态 |
+|------|------|
+| 全部 19 个包编译安装 | ✅ |
+| BOF workspace 自包含 | ✅ |
+| Ignition 库符号链接 | ✅ (16 个) |
+| RegisteredScan Decay Time | ✅ (0.5→3) |
+| 文档同步 | ✅ |
