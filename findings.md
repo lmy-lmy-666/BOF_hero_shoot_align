@@ -7,13 +7,6 @@
 
 ## 研究发现
 
-### ITL_Hero_Shoot 参考项目
-- **位置：** /home/lmy/ITL_Hero_Shoot/
-- loam_adapter: Point-LIO 输出 → 标准 odom→base_footprint TF
-- relocalization: small_gicp GICP 匹配，发布 map→odom + prior_map
-- lob_shot_manager: 7 状态机，弹道求解 + 云台控制（导航组不实现）
-- 目标坐标: (23.125, 1.510, 0.84)，子弹初速 16 m/s
-
 ### RM 2026 规则关键参数
 - 场地: 28m × 18m
 - 42mm 弹丸初速上限: ≤16.5 m/s
@@ -161,7 +154,6 @@
 - **启用：** `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp CYCLONEDDS_URI=file:///home/lmy/cyclonedds.xml`
 
 ## 资源
-- ITL_Hero_Shoot: /home/lmy/ITL_Hero_Shoot/
 - RM 2026 规则手册: /home/lmy/桌面/RoboMaster 2026 机甲大师超级对抗赛比赛规则手册V2.0.0（20260626）.pdf
 - Point-LIO: https://github.com/hku-mars/Point-LIO
 - small_gicp: https://github.com/koide3/small_gicp

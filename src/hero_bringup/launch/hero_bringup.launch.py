@@ -5,9 +5,9 @@ Usage:
     ros2 launch hero_bringup hero_bringup.launch.py
 
     # 实车定位模式
-    ros2 launch hero_bringup hero_bringup.launch.py mode:=robot prior_pcd_file:=/path/to/Hero.pcd
+    ros2 launch hero_bringup hero_bringup.launch.py mode:=robot prior_pcd_file:=pcd/Hero.pcd
 
-    # 建图模式（Ctrl+C 自动保存为 maps/GlobalMap.pcd）
+    # 建图模式（Ctrl+C 自动保存 GlobalMap.pcd 到当前目录）
     ros2 launch hero_bringup hero_bringup.launch.py slam:=true
     ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 """
@@ -33,9 +33,6 @@ def generate_launch_description():
     pkg_sim_adapter  = _try_pkg('sim_adapter')
     pkg_point_lio    = get_package_share_directory('point_lio')
     pkg_bringup      = get_package_share_directory('hero_bringup')
-
-    map_dir = os.path.join(pkg_bringup, 'maps')
-    os.makedirs(map_dir, exist_ok=True)
 
     # =========================================================================
     # Launch arguments
@@ -92,7 +89,7 @@ def generate_launch_description():
                 parameters=[os.path.join(pkg_point_lio, 'config', 'mid360.yaml'),
                             {'use_sim_time': True,
                              'pcd_save.pcd_save_en': is_slam,
-                             'publish.tf_send_en': False}],
+                             'publish.tf_send_en': is_slam}],
                 remappings=remap_tf))
 
             if is_slam:
@@ -101,8 +98,7 @@ def generate_launch_description():
                     actions.append(Node(
                         package='rviz2', executable='rviz2', name='rviz2',
                         arguments=['-d', os.path.join(
-                            get_package_share_directory('rmu_gazebo_simulator'),
-                            'rviz', 'visualize.rviz')],
+                            pkg_bringup, 'rviz', 'visualize_sim_slam.rviz')],
                         remappings=remap_tf,
                         parameters=[{'use_sim_time': True}]))
             else:

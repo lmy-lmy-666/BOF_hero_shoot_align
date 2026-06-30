@@ -1,35 +1,11 @@
 # Hero Shoot — 导航定位模块
 
-## 快速开始
-
-```bash
-cd /home/lmy/BOF_hero_shoot_align
-source install/setup.bash
-
-# 仿真模式（默认）
-ros2 launch hero_bringup hero_bringup.launch.py
-
-# 实车定位（需先验地图，另开终端先启动雷达驱动）
-ros2 launch livox_ros_driver2 msg_MID360_launch.py frame_id:=front_mid360 publish_freq:=10.0
-ros2 launch hero_bringup hero_bringup.launch.py mode:=robot prior_pcd_file:=/path/to/Hero.pcd
-
-# 实车建图（另开终端先启动雷达驱动）
-ros2 launch livox_ros_driver2 msg_MID360_launch.py frame_id:=front_mid360 publish_freq:=10.0
-ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
-
-# 查看目标距离数据（新终端）
-ros2 topic echo /target_computer/target_distance
-```
-
-> **注意**：实车模式需**两个终端**——终端1 启动雷达驱动，终端2 启动 hero_bringup。详见 [MID360 雷达连接与验证](MID360_SETUP.md)。
-
-输出字段：`target_x`（水平距离 m）、`target_h`（高度差 m）、`azimuth`（方位角 rad）、`tf_ready`（TF 就绪标记）。
-
 ## 编译
 
 ```bash
-# 全量编译（Release 模式，务必使用 Release 避免 Debug 性能问题）
 cd /home/lmy/BOF_hero_shoot_align
+
+# 首次编译
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 source install/setup.bash
 
@@ -37,7 +13,7 @@ source install/setup.bash
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select <包名>
 ```
 
-> **首次编译前**：确保 Cyclone DDS 已安装（`sudo apt install ros-jazzy-rmw-cyclonedds-cpp`），workspace 的 `install/setup.bash` 会自动启用。详见「已知问题」表格中的 `点云反复横跳`。
+> **首次编译前**：确保 Cyclone DDS 已安装（`sudo apt install ros-jazzy-rmw-cyclonedds-cpp`），workspace 的 `install/setup.bash` 会自动启用。
 
 > **UDP 缓冲优化**（首次使用需执行一次，重启后失效，建议写入 `/etc/sysctl.conf`）：
 > ```bash
@@ -45,62 +21,63 @@ colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select <包名>
 > echo "12" | sudo -S sysctl -w net.core.wmem_max=26214400
 > ```
 
-## 仿真 vs 实车
+---
 
-| 项目 | 仿真 (`mode:=sim`) | 实车 (`mode:=robot`) |
-|------|-------------------|---------------------|
-| Gazebo 仿真 | ✓ | ✗ |
-| TF 总线 | `/red_standard_robot1/tf` | `/tf`（全局） |
-| robot_state_publisher | sim_adapter 提供 | 自动启动（实车 URDF 参数） |
-| Point-LIO LiDAR 话题 | `/velodyne_points`（转换器输出） | `/livox/lidar`（真实驱动） |
-| Point-LIO IMU 话题 | `/red_standard_robot1/livox/imu` | `/livox/imu` |
-| lidar_frame_relay | ✓（修正 frame_id） | ✗（不需要） |
-| use_sim_time | True | False |
-| 参数文件 | `sim_params.yaml` | `robot_params.yaml` |
+## 快速开始
 
-## RViz 显示（实车）
+### 仿真定位（默认，需先验地图）
 
-实车模式下 RViz 根据建图/定位自动切换配置：
+```bash
+cd /home/lmy/BOF_hero_shoot_align
+source install/setup.bash
+ros2 launch hero_bringup hero_bringup.launch.py
+```
 
-| 模式 | rviz 配置 | Fixed Frame |
-|------|----------|-------------|
-| 建图 (`slam:=true`) | `visualize_robot_slam.rviz` | `camera_init`（Point-LIO 建图原点） |
-| 定位（默认） | `visualize_robot.rviz` | `map`（重定位 + 先验地图） |
+### 仿真建图
 
-实车 RViz 显示项：
+```bash
+cd /home/lmy/BOF_hero_shoot_align
+source install/setup.bash
+ros2 launch hero_bringup hero_bringup.launch.py slam:=true
+```
 
-| 显示名 | 类型 | 话题 | 颜色 | 说明 |
-|--------|------|------|------|------|
-| Grid | 网格 | — | 灰 | 空间参考网格 |
-| TF | 坐标系 | — | 彩色 | 全部 TF 帧 |
-| RobotModel | 机器人模型 | `/robot_description` | 灰 | URDF 机器人模型 |
-| PriorMap | PointCloud2 | `/prior_map` | 灰，半透明 | 先验 PCD 地图 |
-| RegisteredScan | PointCloud2 | `/cloud_registered` | **绿**，2px | Point-LIO 实时配准点云 |
-| Odometry | 里程计箭头 | `/odom` | 橙 | 里程计方向 |
-| Path | 轨迹 | `/path` | 黄 | 运动轨迹 |
-| TargetLine | Marker | `/target_computer/target_line` | 绿线 | 目标水平线 |
+建完 Ctrl+C 退出，地图自动保存为 `GlobalMap.pcd`。
 
-## RViz 显示（仿真）
+### 实车定位（需先验地图）
 
-启动后 RViz 会自动显示（固定帧 `map`，俯视视角）：
+**终端 1** — 启动雷达驱动：
+```bash
+ros2 launch livox_ros_driver2 msg_MID360_launch.py frame_id:=front_mid360 publish_freq:=10.0
+```
 
-| 显示名 | 类型 | 话题 | 颜色 | 说明 |
-|--------|------|------|------|------|
-| Grid | 网格 | — | 灰 | 空间参考网格 |
-| TF | 坐标系 | — | 彩色 | 全部 TF 帧 |
-| RobotModel | 机器人模型 | `/red_standard_robot1/robot_description` | 灰 | URDF 机器人模型 |
-| PriorMap | PointCloud2 | `/prior_map` | 灰，半透明 | 先验 PCD 地图（transient_local） |
-| RegisteredScan | PointCloud2 | `/registered_scan` | **绿**，2px | 实时配准点云（odom 帧） |
-| RawLidar | PointCloud2 | `/red_standard_robot1/livox/lidar_fixed` | 白 | 原始雷达（frame_id 已修正）**仅仿真** |
-| Camera | Camera | `/red_standard_robot1/front_industrial_camera/image` | 彩色 | 相机图像 **仅仿真** |
-| Odometry | 里程计箭头 | `/odom` | 橙 | 里程计方向 |
-| Path | 轨迹 | `/path` | 黄 | 运动轨迹 |
-| TargetLine | Marker | `/target_computer/target_line` | 绿线+红球 | 目标水平线 + 敌方基地位置 |
-| LobShotViz | MarkerArray | `/lob_shot/visualization` | — | 吊射可视化（预留）**仅仿真** |
+**终端 2** — 启动定位：
+```bash
+cd /home/lmy/BOF_hero_shoot_align
+source install/setup.bash
+ros2 launch hero_bringup hero_bringup.launch.py mode:=robot prior_pcd_file:=pcd/Hero.pcd
+```
 
-> **实车模式** 建图自动加载 `visualize_robot_slam.rviz`（Fixed Frame: `camera_init`），定位加载 `visualize_robot.rviz`（Fixed Frame: `map`）。去掉了仿真专用显示，RobotModel 话题为 `/robot_description`（全局），实时点云话题为 `/cloud_registered`。
+### 实车建图
 
-## 查看距离
+**终端 1** — 启动雷达驱动：
+```bash
+ros2 launch livox_ros_driver2 msg_MID360_launch.py frame_id:=front_mid360 publish_freq:=10.0
+```
+
+**终端 2** — 启动建图：
+```bash
+cd /home/lmy/BOF_hero_shoot_align
+source install/setup.bash
+ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
+```
+
+建完 Ctrl+C 退出，地图自动保存为 `GlobalMap.pcd`。
+
+---
+
+## 常用命令
+
+### 查看目标距离
 
 ```bash
 source install/setup.bash
@@ -108,28 +85,15 @@ ros2 topic echo /target_computer/target_distance
 ```
 
 输出字段：
-```
-target_x: 20.97    # 水平距离 (m)，控制组弹道解算核心输入
-target_h: -0.28    # 高度差 (m)，muzzle 低于 target 为负
-azimuth: -0.24     # 地图系方位角 (rad)
-tf_ready: true     # TF 链完整时才为 true
-```
 
-## 控制组接口
+| 字段 | 说明 |
+|------|------|
+| `target_x` | 水平距离 (m) |
+| `target_h` | 高度差 (m)，muzzle 低于 target 为负 |
+| `azimuth` | 地图系方位角 (rad) |
+| `tf_ready` | TF 链完整时才为 true |
 
-```
-话题: /target_computer/target_distance
-类型: hero_interfaces/msg/TargetDistance
-字段:
-  float64 target_x    水平距离 (m)
-  float64 target_h    高度差 (m)  
-  float64 azimuth     地图系方位角 (rad)
-  bool    tf_ready    TF 链是否完整
-```
-
-## 仿真中控制机器人
-
-### 键盘遥控
+### 键盘遥控机器人（仿真）
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -145,20 +109,18 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard \
 | `Shift+L` | 右横移 |
 | `j` / `l` | 左转 / 右转 |
 
-### 命令行
+### 命令行控制（仿真）
 
 ```bash
+# 移动
 ros2 topic pub /red_standard_robot1/cmd_vel geometry_msgs/msg/Twist \
   "{linear: {x: 0.5}, angular: {z: 0.0}}" -1
-```
 
-### 比赛模式供电
-
-```bash
+# 供电（比赛模式）
 ros2 topic pub /referee_system/red_standard_robot1/enable_power std_msgs/msg/Bool "{data: true}" -1
 ```
 
-## 查看 TF 树
+### 查看 TF 树
 
 ```bash
 # 一次性快照
@@ -169,6 +131,23 @@ ros2 run tf2_ros tf2_echo map muzzle
 ```
 
 完整 TF 链：`map → odom → base_footprint → chassis → gimbal_yaw → gimbal_pitch → muzzle`
+
+---
+
+## 仿真 vs 实车
+
+| 项目 | 仿真 (`mode:=sim`) | 实车 (`mode:=robot`) |
+|------|-------------------|---------------------|
+| Gazebo 仿真 | ✓ | ✗ |
+| TF 总线 | `/red_standard_robot1/tf` | `/tf`（全局） |
+| robot_state_publisher | sim_adapter 提供 | 自动启动（实车 URDF 参数） |
+| Point-LIO LiDAR 话题 | `/velodyne_points`（转换器输出） | `/livox/lidar`（真实驱动） |
+| Point-LIO IMU 话题 | `/red_standard_robot1/livox/imu` | `/livox/imu` |
+| lidar_frame_relay | ✓（修正 frame_id） | ✗（不需要） |
+| use_sim_time | True | False |
+| 参数文件 | `sim_params.yaml` | `robot_params.yaml` |
+
+---
 
 ## 数据流
 
@@ -195,6 +174,67 @@ Gazebo LiDAR
                                (frame_id 修正为 front_mid360，供 RViz 显示原始点云)
 ```
 
+---
+
+## RViz 显示（仿真）
+
+启动后 RViz 自动加载（Fixed Frame: `map`，俯视视角）：
+
+| 显示名 | 类型 | 话题 | 颜色 | 说明 |
+|--------|------|------|------|------|
+| Grid | 网格 | — | 灰 | 空间参考网格 |
+| TF | 坐标系 | — | 彩色 | 全部 TF 帧 |
+| RobotModel | 机器人模型 | `/red_standard_robot1/robot_description` | 灰 | URDF 机器人模型 |
+| PriorMap | PointCloud2 | `/prior_map` | 灰，半透明 | 先验 PCD 地图（transient_local） |
+| RegisteredScan | PointCloud2 | `/registered_scan` | **绿**，2px | 实时配准点云（odom 帧） |
+| RawLidar | PointCloud2 | `/red_standard_robot1/livox/lidar_fixed` | 白 | 原始雷达（frame_id 已修正）**仅仿真** |
+| Camera | Camera | `/red_standard_robot1/front_industrial_camera/image` | 彩色 | 相机图像 **仅仿真** |
+| Odometry | 里程计箭头 | `/odom` | 橙 | 里程计方向 |
+| Path | 轨迹 | `/path` | 黄 | 运动轨迹 |
+| TargetLine | Marker | `/target_computer/target_line` | 绿线+红球 | 目标水平线 + 敌方基地位置 |
+
+### 建图模式 RViz
+
+仿真建图 (`slam:=true`) 使用 `visualize_sim_slam.rviz`（Fixed Frame: `camera_init`），只显示 Grid + TF + RobotModel + RegisteredScan。
+
+---
+
+## RViz 显示（实车）
+
+| 模式 | rviz 配置 | Fixed Frame |
+|------|----------|-------------|
+| 建图 (`slam:=true`) | `visualize_robot_slam.rviz` | `camera_init` |
+| 定位（默认） | `visualize_robot.rviz` | `map` |
+
+实车 RViz 显示项：
+
+| 显示名 | 类型 | 话题 | 颜色 | 说明 |
+|--------|------|------|------|------|
+| Grid | 网格 | — | 灰 | 空间参考网格 |
+| TF | 坐标系 | — | 彩色 | 全部 TF 帧 |
+| RobotModel | 机器人模型 | `/robot_description` | 灰 | URDF 机器人模型 |
+| PriorMap | PointCloud2 | `/prior_map` | 灰，半透明 | 先验 PCD 地图 |
+| RegisteredScan | PointCloud2 | `/cloud_registered` | **绿**，2px | Point-LIO 实时配准点云 |
+| Odometry | 里程计箭头 | `/odom` | 橙 | 里程计方向 |
+| Path | 轨迹 | `/path` | 黄 | 运动轨迹 |
+| TargetLine | Marker | `/target_computer/target_line` | 绿线 | 目标水平线 |
+
+---
+
+## 控制组接口
+
+```
+话题: /target_computer/target_distance
+类型: hero_interfaces/msg/TargetDistance
+字段:
+  float64 target_x    水平距离 (m)
+  float64 target_h    高度差 (m)  
+  float64 azimuth     地图系方位角 (rad)
+  bool    tf_ready    TF 链是否完整
+```
+
+---
+
 ## src/ 目录说明
 
 ```
@@ -213,23 +253,30 @@ src/
 ├── rmoss_gazebo/           ← 拷贝自 ITL（Gazebo 底盘/云台插件）
 ├── rmoss_gz_resources/     ← 拷贝自 ITL（仿真资源模型）
 ├── rmoss_interfaces/       ← 拷贝自 ITL（RM 自定义消息）
-├── point_lio/              ← 拷贝自 ITL（Point-LIO SLAM）
+├── point_lio/              ← Point-LIO SLAM（含 BOF 定制修改）
 ├── ign_sim_pointcloud_tool ← 拷贝自 ITL（LiDAR 格式转换）
+├── livox_ros_driver2/      ← Livox 雷达驱动
 └── pb2025_robot_description← 拷贝自 ITL（机器人 SDF 模型）
 ```
+
+---
 
 ## 关键配置文件
 
 | 配置 | 路径 |
 |------|------|
 | 仿真参数（目标坐标、GICP、适配器） | `src/hero_localization/config/sim_params.yaml` |
-| RViz 实车定位配置 | `src/hero_bringup/rviz/visualize_robot.rviz` |
-| RViz 实车建图配置 | `src/hero_bringup/rviz/visualize_robot_slam.rviz` |
-| RViz 仿真配置 | `src/rmu_gazebo_simulator/rmu_gazebo_simulator/rviz/visualize.rviz` |
+| 实车参数 | `src/hero_localization/config/robot_params.yaml` |
+| RViz 仿真定位 | `src/rmu_gazebo_simulator/rmu_gazebo_simulator/rviz/visualize.rviz` |
+| RViz 仿真建图 | `src/hero_bringup/rviz/visualize_sim_slam.rviz` |
+| RViz 实车定位 | `src/hero_bringup/rviz/visualize_robot.rviz` |
+| RViz 实车建图 | `src/hero_bringup/rviz/visualize_robot_slam.rviz` |
 | Cyclone DDS 配置 | `/home/lmy/cyclonedds.xml` |
 | 点云转换器 | `src/rmu_gazebo_simulator/rmu_gazebo_simulator/config/cloud_converter.yaml` |
 | 机器人 URDF | `src/hero_description/urdf/hero_robot.urdf.xacro` |
 | 先验地图 | `src/hero_bringup/pcd/Hero.pcd` |
+
+---
 
 ## 参数速查
 
@@ -239,7 +286,7 @@ src/
 
 | 参数 | 默认值 | 说明 | 用法示例 |
 |------|--------|------|---------|
-| `prior_pcd_file` | `pcd/Hero.pcd` | 先验地图路径 | `prior_pcd_file:=/home/lmy/map.pcd` |
+| `prior_pcd_file` | `pcd/Hero.pcd` | 先验地图路径 | `prior_pcd_file:=pcd/new_map.pcd` |
 | `target_computer.ros__parameters.target_x` | `23.125` | 敌方基地 X (m) | `...target_x:=25.0` |
 | `target_computer.ros__parameters.target_y` | `1.510` | 敌方基地 Y (m) | `...target_y:=2.0` |
 | `target_computer.ros__parameters.target_z` | `0.84` | 敌方基地 Z (m) | `...target_z:=0.9` |
@@ -278,6 +325,8 @@ src/
 | `mid360_pitch` | `0.2618` (15°) | `0.5236` (30°) | LiDAR 俯仰安装角 (rad) |
 
 > URDF 参数在 hero_bringup.launch.py 里硬编码，实车如果尺寸不同需要改 launch 文件。
+
+---
 
 ## 调参方法
 
@@ -335,17 +384,25 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | `pcd_save.pcd_save_en` | `False` | 建图时自动开启 |
 | `pcd_save.interval` | `-1` | -1=结束时一次保存 |
 
+---
+
+## 已知问题
+
 | 问题 | 原因 | 状态 |
 |------|------|------|
 | Message Filter dropping（启动时） | TF 树未建完，早期帧丢弃 | 无害，稳定后自动恢复 |
 | GICP 可能收敛到错误位置 | 先验地图与仿真世界几何不完全匹配 | 用 init_pose 硬对齐 + drift guard |
 | parameter_bridge 缺 use_sim_time | 上游 spawn_robots 未设置 | 暂不影响功能 |
-| 点云反复横跳（RawLidar/RegisteredScan 正常/错误切换） | Fast-RTPS BEST_EFFORT over UDP，2MB 点云帧溢出 208KB 缓冲 | ✅ 已修复：切换 Cyclone DDS + C++ relay + 全链路 depth 增大。workspace 自动启用 Cyclone DDS（`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`） |
+| 点云反复横跳（RawLidar/RegisteredScan 正常/错误切换） | Fast-RTPS BEST_EFFORT over UDP，2MB 点云帧溢出 208KB 缓冲 | ✅ 已修复：切换 Cyclone DDS + C++ relay + 全链路 depth 增大 |
 | 模型 mesh 找不到 | env-hook 导出旧变量 `IGN_GAZEBO_RESOURCE_PATH`，Harmonic 需 `GZ_SIM_RESOURCE_PATH` | ✅ 已修复：`.dsv.in` + `package.xml` 更新 |
 | Gazebo 启动报 `ign` 命令不存在 | Gazebo Harmonic 命令改为 `gz` | ✅ 已修复：`gazebo.launch.py` gz_version 6→8 |
 | 白色原始点云自旋时偏转 | relay 只改 frame_id，不做运动畸变校正 | 预期行为，不影响算法（算法用绿色 `/registered_scan`） |
 
-### 2026-06-28 实车调试修改记录
+---
+
+## 修改记录
+
+### 2026-06-28 实车调试
 
 | 文件 | 改动 | 原因 |
 |------|------|------|
@@ -356,7 +413,6 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | `visualize_robot.rviz` | 话题 `/registered_scan` → `/cloud_registered`，Fixed Frame → `map` | Point-LIO 实际发布话题名 |
 | `visualize_robot_slam.rviz`（新建） | 同上 + Fixed Frame → `camera_init` | SLAM 模式无 map 坐标系 |
 | `hero_bringup.launch.py` | 新增鲁棒性参数：`lidar_meas_cov=0.001`, `imu_meas_acc/omg_cov=0.1`, `gravity_init=[4.905,0,-8.496]` | 来自 ITL 实车验证：降低 IMU 权重、修正 30° 安装角重力方向 |
-| `install/` 目录 | 手动 `ln -s` visualize_robot_slam.rviz | 新文件不会被 `colcon build` 自动安装 |
 
 ### 2026-06-29 Jazzy 迁移（Humble → Ubuntu 24.04 + Gazebo Harmonic）
 
@@ -374,3 +430,12 @@ ros2 launch hero_bringup hero_bringup.launch.py mode:=robot slam:=true
 | `visualize.rviz` | RawLidar/RegisteredScan depth 5→100 |
 | 新增 `cyclonedds.xml` | Cyclone DDS 配置（`RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`） |
 | UDP 缓冲 | 系统默认 208KB → 25MB |
+
+### 2026-06-29 仿真建图修复
+
+| 改动 | 说明 |
+|------|------|
+| `publish.tf_send_en` 改为跟随 `is_slam` | 建图时自动 `True`，发布 `camera_init` 帧 |
+| 新建 `visualize_sim_slam.rviz` | 仿真建图专用 RViz，Fixed Frame = `camera_init` |
+| 清理 `point_lio/point_lio` symlink | 无用快捷方式，已删除 |
+| 更新 `docs/slam_mapping_guide.md` | 正确的建图命令与流程 |

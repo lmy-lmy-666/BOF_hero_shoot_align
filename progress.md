@@ -4,7 +4,6 @@
 
 ### 阶段 1：需求与架构确认
 - **状态：** complete
-- 探索 ITL_Hero_Shoot 项目结构
 - 读取 RM 2026 规则手册（英雄 42mm 关键参数）
 - 确认导航组职责：只做定位，交付 TF树 + target_x + target_h
 - 确认架构：原创 hero_* 包 + 拷贝仿真依赖
@@ -14,7 +13,6 @@
 - 创建 5 个原创包：hero_core、hero_interfaces、hero_localization、hero_description、hero_bringup
 - 11 个 gtest 用例全部通过
 - 3 个 ROS2 节点编译通过
-- 从 ITL_Hero_Shoot 拷贝仿真依赖包
 
 ### 阶段 5：功能审计与修复
 - **状态：** complete
@@ -33,7 +31,6 @@
 - ✅ 修复：订阅用 BEST_EFFORT（匹配 bridge），发布用 RELIABLE（匹配 RViz）
 
 ### 第三轮：参考项目对齐
-- ✅ 探索 /home/lmy/ITL_Hero_Shoot/ 参考项目完整结构
 - ✅ relocalization 添加 /prior_map 发布（transient_local QoS）
 - ✅ RViz 配置完全重写，对齐参考 nav.rviz
   - 添加 Grid、PriorMap、Odometry、Path 显示

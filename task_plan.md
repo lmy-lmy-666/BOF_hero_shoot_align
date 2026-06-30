@@ -27,7 +27,6 @@
 - [x] 创建 hero_description 包（URDF xacro）
 - [x] 创建 hero_bringup 包（顶层 launch 入口）
 - [x] 创建 hero_interfaces 包（自定义消息）
-- [x] 从 ITL_Hero_Shoot 拷贝仿真依赖包
 - **状态：** complete
 
 ### 阶段 3：核心算法实现 ✓
@@ -117,21 +116,6 @@ hero_bringup/       顶层入口 + 工具脚本
 └── package.xml
 ```
 
-### 从 ITL_Hero_Shoot 拷贝（仿真依赖，路径为 src/）
-
-```
-sim_adapter/              仿真桥接（双yaw→单yaw、Gimbal→JointState）
-rmu_gazebo_simulator/     Gazebo 世界 + RViz 配置 + 桥接配置
-rmoss_gazebo/             底盘底座驱动
-rmoss_gz_resources/       仿真资源
-rmoss_interfaces/         自定义消息
-point_lio/                Point-LIO 里程计
-ign_sim_pointcloud_tool   LiDAR 格式转换（PointXYZ→PointXYZIRT）
-pb2025_robot_description  机器人 SDF 模型
-sdformat_tools/           SDF 工具
-utils/                    工具库
-```
-
 ## 已做决策
 
 | 决策 | 理由 |
@@ -144,5 +128,4 @@ utils/                    工具库
 | 原创代码与拷贝代码分开 | hero_* 是交付物，其余是仿真依赖 |
 
 ## 备注
-- 参考项目：/home/lmy/ITL_Hero_Shoot/
 - 项目根目录：/home/lmy/BOF_hero_shoot_align/

@@ -24,7 +24,7 @@ install(PROGRAMS scripts/lidar_frame_relay.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY rviz maps
+install(DIRECTORY rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
