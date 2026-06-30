@@ -22,3 +22,13 @@ __pycache__/
 
 # Test binaries
 src/hero_core/build/
+
+# Large data files
+*.pcd
+*.cam
+
+# CMake build artifacts
+CMakeFiles/
+
+# Graphviz
+*.gv
